@@ -1,0 +1,309 @@
+openapi: 3.0.0
+info:
+  title: Android Management API - Application Information
+  description: アプリケーション情報を取得するためのAPI仕様
+  version: 1.0.0
+
+paths:
+  /enterprises/{enterpriseId}/applications/{packageName}:
+    get:
+      summary: アプリケーション情報の取得
+      description: 指定されたパッケージ名のアプリケーション情報を取得します
+      parameters:
+        - name: enterpriseId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: エンタープライズID
+          example: "LC0283n6ru"
+        - name: packageName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: アプリケーションのパッケージ名
+          example: "com.android.chrome"
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Application"
+
+components:
+  schemas:
+    Application:
+      type: object
+      properties:
+        name:
+          type: string
+          description: アプリの名前（enterprises/{enterprise}/applications/{packageName} の形式）
+          example: "enterprises/LC0283n6ru/applications/com.android.chrome"
+        title:
+          type: string
+          description: アプリのタイトル（ローカライズ済 ※地域に最適化されたもの）
+          example: "Google Chrome"
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApplicationPermission"
+          description: アプリに必要な権限
+        managedProperties:
+          type: array
+          items:
+            $ref: "#/components/schemas/ManagedProperty"
+          description: アプリ用に事前構成できる管理対象プロパティのセット
+        iconUrl:
+          type: string
+          format: uri
+          description: アプリのアイコン画像URL（最大512x512ピクセル）
+          example: "https://example.com/icon.png"
+        smallIconUrl:
+          type: string
+          format: uri
+          description: アプリの小さいアイコン画像URL（最大128x128ピクセル）
+          example: "https://example.com/small_icon.png"
+        appTracks:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppTrackInfo"
+          description: 企業に表示されるアプリケーショントラック
+        author:
+          type: string
+          description: アプリの作成者名
+          example: "Google LLC"
+        playStoreUrl:
+          type: string
+          format: uri
+          description: Google Playストアの詳細ページURL
+          example: "https://play.google.com/store/apps/details?id=com.android.chrome"
+        distributionChannel:
+          $ref: "#/components/schemas/DistributionChannel"
+
+        appPricing:
+          $ref: "#/components/schemas/AppPricing"
+
+        description:
+          type: string
+          description: ローカライズされたプロモーションの説明
+          example: "Google Chromeは、高速で安全なウェブブラウザです。"
+        screenshotUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: スクリーンショットのURL一覧
+          example:
+            [
+              "https://example.com/screenshot1.png",
+              "https://example.com/screenshot2.png",
+            ]
+        category:
+          type: string
+          description: アプリのカテゴリ
+          example: "ブラウザ"
+        minAndroidSdkVersion:
+          type: integer
+          description: 必要最小限のAndroid SDKバージョン
+          example: 21
+        contentRating:
+          $ref: "#/components/schemas/ContentRating"
+
+        updateTime:
+          type: string
+          format: date-time
+          description: 最終更新日時（RFC3339形式）
+          example: "2023-01-01T12:00:00Z"
+        availableCountries:
+          type: array
+          items:
+            type: string
+            pattern: "^[A-Z]{2}$"
+          description: 利用可能な国コード（ISO 3166-1 alpha-2）
+          example: ["US", "JP"]
+        features:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppFeature"
+          description: アプリの特徴的な機能
+          example: ["VPN_APP"]
+        appVersions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppVersion"
+          description: このアプリで現在利用可能なバージョン
+        fullDescription:
+          type: string
+          description: アプリの詳細説明
+          example: "Google Chromeは、Googleが開発した無料のウェブブラウザです。"
+
+    ApplicationPermission:
+      type: object
+      properties:
+        permissionId:
+          type: string
+          description: 権限を一意に識別する文字列
+          example: "android.permission.ACCESS_WIFI_STATE"
+        name:
+          type: string
+          description: 権限の名前
+          example: "view Wi-Fi connections"
+        description:
+          type: string
+          description: 権限を一意に識別する文字列
+          example: "Allows the app to view information about Wi-Fi networking, such as whether Wi-Fi is enabled and name of connected Wi-Fi devices."
+    ManagedProperty:
+      type: object
+      description: アプリケーションの管理対象プロパティ
+      properties:
+        key:
+          type: string
+          description: アプリがプロパティの識別に使用する一意のキー（例：com.google.android.gm.fieldname）
+          example: "com.google.android.gm.fieldname"
+        type:
+          type: string
+          enum:
+            [
+              "BOOL",
+              "STRING",
+              "INTEGER",
+              "CHOICE",
+              "MULTISELECT",
+              "HIDDEN",
+              "BUNDLE",
+              "BUNDLE_ARRAY",
+            ]
+          description: プロパティのタイプ
+          example: "STRING"
+        title:
+          type: string
+          description: プロパティの名前（ローカライズ済み）
+          example: "Default search provider name"
+        description:
+          type: string
+          description: プロパティの詳細な説明（ローカライズ済み）
+          example: "If DefaultSearchProviderEnabled is on, then setting DefaultSearchProviderName specifies the default search provider's name. Leaving DefaultSearchProviderName unset means the hostname specified by the search URL is used."
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/ManagedPropertyEntry"
+          description: CHOICE または MULTISELECT プロパティの有効なエントリのリスト
+        defaultValue:
+          description: プロパティのデフォルト値（BUNDLE_ARRAY以外）
+          oneOf:
+            - type: string
+            - type: boolean
+            - type: integer
+            - type: array
+              items:
+                type: string
+          example: "default_value"
+        nestedProperties:
+          type: array
+          items:
+            $ref: "#/components/schemas/ManagedProperty"
+          description: BUNDLE_ARRAY プロパティの場合のネストされたプロパティリスト（最大2階層）
+    ManagedPropertyEntry:
+      type: object
+      description: 管理対象プロパティのエントリ
+      properties:
+        value:
+          type: string
+          description: エントリの値
+          example: "1"
+        name:
+          type: string
+          description: エントリの表示名（ローカライズ済み）
+          example: "Allow all sites to set local data"
+        description:
+          type: string
+          description: エントリの詳細説明（ローカライズ済み）
+          example: "Setting the policy to 1 lets websites run JavaScript. Setting the policy to 2 denies JavaScript. Leaving it unset allows JavaScript, but users can change this setting."
+    AppTrackInfo:
+      type: object
+      description: アプリケーショントラックの情報
+      properties:
+        trackId:
+          type: string
+          description: 変更不可能な一意のトラックID（Google Play ConsoleのreleaseTrackIdから取得）
+          example: "beta"
+        trackAlias:
+          type: string
+          description: trackIdに関連付けられたトラック名（Google Play Consoleで設定可能）
+          example: "Beta Track"
+    DistributionChannel:
+      type: string
+      description: |
+        アプリケーションの配布チャネル:
+        - DISTRIBUTION_CHANNEL_UNSPECIFIED: 配布チャネルが指定されていない
+        - PUBLIC_GOOGLE_HOSTED: Play ストアで公開されており、特定の企業に限定されない
+        - PRIVATE_GOOGLE_HOSTED: 限定公開アプリ（企業限定）でGoogleがホスト
+        - PRIVATE_SELF_HOSTED: 限定公開アプリ（企業限定）で自社ホスト
+      enum:
+        - DISTRIBUTION_CHANNEL_UNSPECIFIED
+        - PUBLIC_GOOGLE_HOSTED
+        - PRIVATE_GOOGLE_HOSTED
+        - PRIVATE_SELF_HOSTED
+    AppPricing:
+      type: string
+      description: |
+        アプリの価格設定:
+        - APP_PRICING_UNSPECIFIED: 不明な料金。一般提供されていない承認済みアプリを示す
+        - FREE: このアプリは無料
+        - FREE_WITH_IN_APP_PURCHASE: アプリは無料だが、アプリ内購入が可能
+        - PAID: アプリは有料
+      enum:
+        - APP_PRICING_UNSPECIFIED
+        - FREE
+        - FREE_WITH_IN_APP_PURCHASE
+        - PAID
+    ContentRating:
+      type: string
+      description: |
+        汎用 IARC 基準に準拠したコンテンツレーティング:
+        - CONTENT_RATING_UNSPECIFIED: コンテンツレーティングが指定されていない
+        - THREE_YEARS: 3歳以上のみに適したコンテンツ
+        - SEVEN_YEARS: 7歳以上のユーザーのみに適しているコンテンツ
+        - TWELVE_YEARS: 12歳以上のみを対象とするコンテンツ
+        - SIXTEEN_YEARS: 16歳以上のみを対象とするコンテンツ
+        - EIGHTEEN_YEARS: 18歳以上のユーザーのみに適しているコンテンツ
+      enum:
+        - CONTENT_RATING_UNSPECIFIED
+        - THREE_YEARS
+        - SEVEN_YEARS
+        - TWELVE_YEARS
+        - SIXTEEN_YEARS
+        - EIGHTEEN_YEARS
+    AppFeature:
+      type: string
+      description: |
+        アプリに含めることができる機能:
+        - APP_FEATURE_UNSPECIFIED: 機能が指定されていない
+        - VPN_APP: アプリがVPNである
+      enum:
+        - APP_FEATURE_UNSPECIFIED
+        - VPN_APP
+    AppVersion:
+      type: object
+      description: アプリの1つのバージョンを表します
+      properties:
+        versionString:
+          type: string
+          description: Google Play ストアでアプリデベロッパーがバージョンを識別するために使用する文字列
+          example: "131.0.6778.81"
+        versionCode:
+          type: integer
+          description: アプリバージョンの一意の増分識別子
+          example: 677808153
+        trackIds:
+          type: array
+          items:
+            type: string
+          description: アプリのバージョンが公開されている識別子をトラッキング
+          example: ["beta", "stable"]
+        production:
+          type: boolean
+          description: Trueの場合、このバージョンは製品版トラックであることを示します
+          example: true

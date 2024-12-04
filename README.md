@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# openapi の機能理解
 
-## Getting Started
+## 環境構築
 
-First, run the development server:
+### 型生成
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+1. [OpenAPI TypeScript](https://openapi-ts.dev/)
+2. tsconfig.json の設定
+3. コマンドを package.json に下記コマンドを登録する
+4. [type-gen] を実行する
+
+```json
+"type-gen": "npx openapi-typescript ./lib/openapi/schema.yaml -o ./lib/type.ts"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 擬似エンドポイントを作成する
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. [mswjs](https://mswjs.io/docs/getting-started)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 運用に関して
 
-## Learn More
+- yaml に変更があった場合
 
-To learn more about Next.js, take a look at the following resources:
+  - その都度、手作業で更新する
+  - package を出す。git の組織ないで有効なパッケージを配る。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+  ```package.json
+  "devDependencies": {
+    "@hoge/app-schema":"^1"
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+  },
+  ```
 
-## Deploy on Vercel
+  - 直接スキーマを呼ぶ。社内からアクセスできるエンドポイントにスキーマをおく
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+  ```package.json
+  "scripts": {
+    "type-gen": "npx openapi-typescript http://xxx.schema -o ./lib/type.ts"
+  },
+  ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+  - モノリポ化する ※理想　※ターボリポとか
